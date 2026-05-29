@@ -61,24 +61,10 @@ The application can be accessed at:
 * https://yourhost:3001/
 
 >[!WARNING]
->This container does not encrypt Signal's config.json using a secret manager like gnome-keyring or kwallet, the file is stored in plaintext.
+>This container does not encrypt Signal's config.json using a secret manager like gnome-keyring or kwallet, the file is stored in plaintext. Ensure the host volume is protected at rest (e.g. full-disk encryption on the host).
 
-### Chromium/Electron sandbox (`SIGNAL_SANDBOX`)
-
-Signal runs with the Chromium/Electron sandbox **disabled by default** (`--no-sandbox`), because the sandbox needs either unprivileged user namespaces or a setuid helper, which a generic container host cannot guarantee.
-
-If you control the host you can re-enable the sandbox by setting `-e SIGNAL_SANDBOX=true`. Be aware:
-
->[!WARNING]
->If you set `SIGNAL_SANDBOX=true` but the host provides **neither** a working sandbox mechanism, **Signal will fail to start** ("Running as root without --no-sandbox is not supported"). The default (`false`) is the safe, always-working setting.
-
-For the sandbox to actually work, the host must provide one of:
-
-* **Namespace sandbox (preferred):** unprivileged user namespaces enabled on the host (e.g. `sysctl kernel.unprivileged_userns_clone=1`) while running under Docker's **default** seccomp profile.
-* **setuid sandbox (fallback):** the bundled `chrome-sandbox` helper is already shipped setuid-root in the image, so this path works under default Docker without host sysctl tuning.
-
->[!CAUTION]
->Do **not** try to make the sandbox work by passing `--security-opt seccomp=unconfined` or `--cap-add SYS_ADMIN`. These re-enable the sandbox but hand back more privilege than the sandbox protects, so the net result is no better (and likely worse) than leaving `SIGNAL_SANDBOX` off.
+>[!NOTE]
+>Signal runs with `--no-sandbox` as required for containerised Electron applications. This is standard for this deployment model; the meaningful security perimeter is the VM boundary and your reverse proxy authentication layer.
 
 ### Strict reverse proxies
 

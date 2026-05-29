@@ -1,8 +1,6 @@
-# Personal deployment for this Signal fork.
-#
-# Build locally:   docker compose up -d --build
-# Pull from GHCR:  docker compose pull && docker compose up -d
-#                  (comment out the `build:` block below to always pull)
+# Signal Desktop — personal deployment.
+# Pull the latest image:  docker compose pull && docker compose up -d
+# Build locally instead:  docker compose up -d --build
 services:
   signal:
     image: ghcr.io/qualifiedvirtue/signal:latest
@@ -10,27 +8,17 @@ services:
       context: .
       args:
         VERSION: local
-        # BUILD_DATE: "2026-05-29"          # informational label only
-        # SIGNAL_VERSION: "8.12.0-1"        # pin for reproducible builds / rollback
+        # Uncomment to pin a specific Signal version for reproducible builds:
+        # SIGNAL_VERSION: "8.12.0-1"
     container_name: signal
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      # Opt-in: re-enable the Chromium/Electron sandbox. Turn on ONLY after
-      # confirming Signal still starts with it (see README). Do NOT pair with
-      # seccomp=unconfined or cap_add SYS_ADMIN.
-      # - SIGNAL_SANDBOX=true
     volumes:
       - ./config:/config
     ports:
-      # Bind to localhost so only your reverse proxy (Caddy/Authelia) is exposed.
+      # Bound to localhost — expose via your reverse proxy only.
       - "127.0.0.1:3001:3001"
     shm_size: "1gb"
     restart: unless-stopped
-    # Uncomment only if Signal won't run under Docker's default seccomp profile:
-    # security_opt:
-    #   - seccomp=unconfined
-    # GPU acceleration (Intel/AMD) — see README for the full Wayland/Nvidia setup:
-    # devices:
-    #   - /dev/dri:/dev/dri

@@ -1,17 +1,3 @@
 #!/bin/bash
 
-# The Chromium/Electron sandbox is disabled by default because it requires
-# either unprivileged user namespaces or a setuid helper, which a generic
-# container host cannot guarantee. Set SIGNAL_SANDBOX=true to re-enable it
-# in an environment you control (see README).
-# Read from the s6 env store directly; the desktop session does not reliably
-# inherit Docker env vars through the labwc autostart path.
-SIGNAL_SANDBOX=$(cat /var/run/s6/container_environment/SIGNAL_SANDBOX 2>/dev/null)
-
-if [[ "${SIGNAL_SANDBOX,,}" == "true" ]]; then
-  SANDBOX_FLAG=""
-else
-  SANDBOX_FLAG="--no-sandbox"
-fi
-
-/usr/bin/signal-desktop --ozone-platform=wayland ${SANDBOX_FLAG}
+/usr/bin/signal-desktop --ozone-platform=wayland --no-sandbox

@@ -14,7 +14,6 @@ name: Build image
 on:
   push:
     branches:
-      - claude/blissful-gauss-FfWn5
       - master
     paths:
       - 'Dockerfile'
