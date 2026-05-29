@@ -23,6 +23,9 @@ param_usage_include_ports: true
 param_ports:
   - {external_port: "3000", internal_port: "3000", port_desc: "Signal desktop gui HTTP must be proxied."}
   - {external_port: "3001", internal_port: "3001", port_desc: "Signal desktop gui HTTPS."}
+opt_param_usage_include_env: true
+opt_param_env_vars:
+  - {env_var: "SIGNAL_SANDBOX", env_value: "false", desc: "Set to `true` to re-enable the Chromium/Electron sandbox. Only works on hosts that permit unprivileged user namespaces (or the setuid sandbox helper); leave unset/`false` otherwise or Signal will fail to start."}
 custom_params:
   - {name: "shm-size", name_compose: "shm_size", value: "1gb", desc: "Recommended for all desktop images."}
 # Selkies blurb settings
@@ -37,6 +40,22 @@ app_setup_block: |
 
   >[!WARNING]
   >This container does not encrypt Signal's config.json using a secret manager like gnome-keyring or kwallet, the file is stored in plaintext.
+
+  ### Chromium/Electron sandbox (`SIGNAL_SANDBOX`)
+
+  Signal runs with the Chromium/Electron sandbox **disabled by default** (`--no-sandbox`), because the sandbox needs either unprivileged user namespaces or a setuid helper, which a generic container host cannot guarantee.
+
+  If you control the host you can re-enable the sandbox by setting `-e SIGNAL_SANDBOX=true`. Be aware:
+
+  >[!WARNING]
+  >If you set `SIGNAL_SANDBOX=true` but the host provides **neither** a working sandbox mechanism, **Signal will fail to start** ("Running as root without --no-sandbox is not supported"). The default (`false`) is the safe, always-working setting.
+
+  For the sandbox to actually work, the host must provide one of:
+  * **Namespace sandbox (preferred):** unprivileged user namespaces enabled on the host (e.g. `sysctl kernel.unprivileged_userns_clone=1`) while running under Docker's **default** seccomp profile.
+  * **setuid sandbox (fallback):** the bundled `chrome-sandbox` helper is already shipped setuid-root in the image, so this path works under default Docker without host sysctl tuning.
+
+  >[!CAUTION]
+  >Do **not** try to make the sandbox work by passing `--security-opt seccomp=unconfined` or `--cap-add SYS_ADMIN`. These re-enable the sandbox but hand back more privilege than the sandbox protects, so the net result is no better (and likely worse) than leaving `SIGNAL_SANDBOX` off.
 # init diagram
 init_diagram: |
   "signal:latest": {
@@ -105,6 +124,7 @@ init_diagram: |
   "signal:latest" <- Base Images
 # changelog
 changelogs:
+  - {date: "29.05.26:", desc: "Remove bundled Chromium browser, fix pacman partial-upgrade, add opt-in SIGNAL_SANDBOX to re-enable the Chromium/Electron sandbox."}
   - {date: "04.04.26:", desc: "Make Wayland default disable with PIXELFLUX_WAYLAND=false."}
   - {date: "21.03.26:", desc: "Use Wayland ozone platform fixes scaling and acceleration."}
   - {date: "28.12.25:", desc: "Add Wayland init logic."}

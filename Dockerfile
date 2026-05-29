@@ -20,9 +20,13 @@ RUN \
     /usr/share/selkies/www/icon.png \
     https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/signal-logo.png && \
   echo "**** install packages ****" && \
-  pacman -Sy --noconfirm \
-   chromium \
+  pacman -Syu --noconfirm \
    "signal-desktop${SIGNAL_VERSION:+=$SIGNAL_VERSION}" && \
+  echo "**** allow optional chromium sandbox (opt-in via SIGNAL_SANDBOX) ****" && \
+  if [ -f /usr/lib/signal-desktop/chrome-sandbox ]; then \
+    chown root:root /usr/lib/signal-desktop/chrome-sandbox && \
+    chmod 4755 /usr/lib/signal-desktop/chrome-sandbox; \
+  fi && \
   echo "**** cleanup ****" && \
   printf \
     "Linuxserver.io version: ${VERSION}\nBuild-date: ${BUILD_DATE}" \

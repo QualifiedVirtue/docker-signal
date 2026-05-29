@@ -1,0 +1,77 @@
+# Builds this fork's image and pushes it to GitHub Container Registry (GHCR).
+# This is your personal replacement for LinuxServer's Jenkins pipeline.
+#
+# Triggers:
+#   - push to your working/master branch (when the recipe changes)
+#   - weekly schedule (rebuilds to pick up new signal-desktop / base updates)
+#   - manual dispatch (optionally pin a signal-desktop version)
+#
+# Output tags (all under ghcr.io/<owner>/signal):
+#   :latest, :<YYYYMMDD>, :<git-sha>
+name: Build image
+
+on:
+  push:
+    branches:
+      - claude/blissful-gauss-FfWn5
+      - master
+    paths:
+      - 'Dockerfile'
+      - 'root/**'
+      - '.github/workflows/build-image.yml'
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      signal_version:
+        description: 'Pin a specific signal-desktop version (optional, e.g. 8.12.0-1)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lowercase owner for GHCR
+        id: owner
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Compute build metadata
+        id: meta
+        run: |
+          echo "build_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+          echo "date_tag=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/${{ steps.owner.outputs.owner }}/signal:latest
+            ghcr.io/${{ steps.owner.outputs.owner }}/signal:${{ steps.meta.outputs.date_tag }}
+            ghcr.io/${{ steps.owner.outputs.owner }}/signal:${{ github.sha }}
+          build-args: |
+            VERSION=${{ steps.meta.outputs.date_tag }}
+            BUILD_DATE=${{ steps.meta.outputs.build_date }}
+            SIGNAL_VERSION=${{ github.event.inputs.signal_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,69 @@
+# syntax=docker/dockerfile:1
+
+# Debian variant: stable LTS-style base with the official, Signal-signed .deb
+# (vendor supply chain) instead of the Arch-packaged build. No GPU/Mesa
+# freshness benefit here, so this trades acceleration for a backported-security
+# base and a vendor-signed Signal binary. Build with:
+#   docker build -f Dockerfile.debian -t signal-debian:test \
+#     --build-arg VERSION=local --build-arg BUILD_DATE="$(date +%Y-%m-%d)" .
+#
+# To target Ubuntu (Signal's native build target) instead, change the base tag
+# to ghcr.io/linuxserver/baseimage-selkies:ubunturesolute -- the Selkies stack
+# and everything below is identical.
+
+# Runtime Stage
+FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie
+
+# set version label
+ARG BUILD_DATE
+ARG VERSION
+ARG SIGNAL_VERSION
+LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
+LABEL maintainer="qualifiedvirtue"
+
+ENV TITLE="Signal" \
+    NO_GAMEPAD=true \
+    PIXELFLUX_WAYLAND=true
+
+RUN \
+  echo "**** add icon ****" && \
+  curl -o \
+    /usr/share/selkies/www/icon.png \
+    https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/signal-logo.png && \
+  echo "**** add signal's official signing key and repo ****" && \
+  apt-get update && \
+  apt-get install --no-install-recommends -y \
+    ca-certificates \
+    curl \
+    gnupg && \
+  curl -fsSL https://updates.signal.org/desktop/apt/keys.asc \
+    | gpg --dearmor -o /usr/share/keyrings/signal-desktop-keyring.gpg && \
+  echo \
+    "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main" \
+    > /etc/apt/sources.list.d/signal-xenial.list && \
+  echo "**** install signal-desktop from the official repo ****" && \
+  apt-get update && \
+  apt-get install --no-install-recommends -y \
+    "signal-desktop${SIGNAL_VERSION:+=$SIGNAL_VERSION}" && \
+  echo "**** portable launcher path + opt-in chromium sandbox ****" && \
+  [ -e /usr/bin/signal-desktop ] || ln -s /opt/Signal/signal-desktop /usr/bin/signal-desktop && \
+  if [ -f /opt/Signal/chrome-sandbox ]; then \
+    chown root:root /opt/Signal/chrome-sandbox && \
+    chmod 4755 /opt/Signal/chrome-sandbox; \
+  fi && \
+  echo "**** cleanup ****" && \
+  printf \
+    "Linuxserver.io version: ${VERSION}\nBuild-date: ${BUILD_DATE}" \
+    > /build_version && \
+  apt-get clean && \
+  rm -rf \
+    /tmp/* \
+    /var/lib/apt/lists/* \
+    /var/tmp/*
+
+# add local files and files from buildstage
+COPY root/ /
+
+# ports and volumes
+VOLUME /config
+EXPOSE 3001
