@@ -1,5 +1,6 @@
-# Builds this fork's image and pushes it to GitHub Container Registry (GHCR).
-# This is your personal replacement for LinuxServer's Jenkins pipeline.
+# Builds this fork's image (default Dockerfile: Debian + official Signal .deb)
+# and pushes it to GitHub Container Registry (GHCR). Personal replacement for
+# LSIO's Jenkins pipeline. To build the Arch/GPU variant, set file: Dockerfile.arch.
 #
 # Triggers:
 #   - push to your working/master branch (when the recipe changes)
@@ -13,7 +14,6 @@ name: Build image
 on:
   push:
     branches:
-      - claude/blissful-gauss-FfWn5
       - master
     paths:
       - 'Dockerfile'
