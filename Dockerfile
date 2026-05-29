@@ -20,7 +20,7 @@ RUN \
     /usr/share/selkies/www/icon.png \
     https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/signal-logo.png && \
   echo "**** install packages ****" && \
-  pacman -Syu --noconfirm \
+  pacman -Sy --noconfirm \
    "signal-desktop${SIGNAL_VERSION:+=$SIGNAL_VERSION}" && \
   echo "**** allow optional chromium sandbox (opt-in via SIGNAL_SANDBOX) ****" && \
   if [ -f /usr/lib/signal-desktop/chrome-sandbox ]; then \
