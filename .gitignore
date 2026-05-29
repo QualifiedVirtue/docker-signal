@@ -1,1 +1,4 @@
 .jenkins-external
+
+# local deployment data created by compose.yaml (contains Signal config)
+/config/
