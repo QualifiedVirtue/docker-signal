@@ -1,3 +1,13 @@
 #!/bin/bash
 
-/usr/bin/signal-desktop --no-sandbox
+# The Chromium/Electron sandbox is disabled by default because it requires
+# either unprivileged user namespaces or a setuid helper, which a generic
+# container host cannot guarantee. Set SIGNAL_SANDBOX=true to re-enable it
+# in an environment you control (see README).
+if [[ "${SIGNAL_SANDBOX,,}" == "true" ]]; then
+  SANDBOX_FLAG=""
+else
+  SANDBOX_FLAG="--no-sandbox"
+fi
+
+/usr/bin/signal-desktop ${SANDBOX_FLAG}

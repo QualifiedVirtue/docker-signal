@@ -23,6 +23,9 @@ param_usage_include_ports: true
 param_ports:
   - {external_port: "3000", internal_port: "3000", port_desc: "Signal desktop gui HTTP must be proxied."}
   - {external_port: "3001", internal_port: "3001", port_desc: "Signal desktop gui HTTPS."}
+opt_param_usage_include_env: true
+opt_param_env_vars:
+  - {env_var: "SIGNAL_SANDBOX", env_value: "false", desc: "Set to `true` to re-enable the Chromium/Electron sandbox. Only works on hosts that permit unprivileged user namespaces (or the setuid sandbox helper); leave unset/`false` otherwise or Signal will fail to start."}
 custom_params:
   - {name: "shm-size", name_compose: "shm_size", value: "1gb", desc: "Recommended for all desktop images."}
 # Selkies blurb settings
@@ -105,6 +108,7 @@ init_diagram: |
   "signal:latest" <- Base Images
 # changelog
 changelogs:
+  - {date: "29.05.26:", desc: "Remove bundled Chromium browser, fix pacman partial-upgrade, add opt-in SIGNAL_SANDBOX to re-enable the Chromium/Electron sandbox."}
   - {date: "04.04.26:", desc: "Make Wayland default disable with PIXELFLUX_WAYLAND=false."}
   - {date: "21.03.26:", desc: "Use Wayland ozone platform fixes scaling and acceleration."}
   - {date: "28.12.25:", desc: "Add Wayland init logic."}
