@@ -1,6 +1,6 @@
-# Builds this fork's image (Debian variant, official Signal .deb) and pushes
-# it to GitHub Container Registry (GHCR). Personal replacement for LSIO's
-# Jenkins pipeline. To build the Arch variant instead, set file: Dockerfile.
+# Builds this fork's image (default Dockerfile: Debian + official Signal .deb)
+# and pushes it to GitHub Container Registry (GHCR). Personal replacement for
+# LSIO's Jenkins pipeline. To build the Arch/GPU variant, set file: Dockerfile.arch.
 #
 # Triggers:
 #   - push to your working/master branch (when the recipe changes)
@@ -17,7 +17,7 @@ on:
       - claude/blissful-gauss-FfWn5
       - master
     paths:
-      - 'Dockerfile.debian'
+      - 'Dockerfile'
       - 'root/**'
       - '.github/workflows/build-image.yml'
   schedule:
@@ -64,7 +64,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.debian
           push: true
           platforms: linux/amd64
           tags: |

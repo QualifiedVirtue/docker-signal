@@ -1,41 +1,63 @@
 # syntax=docker/dockerfile:1
 
+# Default build: stable Debian base with the official, Signal-signed .deb
+# (vendor supply chain). No GPU/Mesa freshness benefit, so it trades hardware
+# acceleration for a security-backported base and a vendor-signed Signal binary.
+# The Arch/GPU variant lives in Dockerfile.arch.
+#
+# To target Ubuntu (Signal's native build target) instead, change the base tag
+# to ghcr.io/linuxserver/baseimage-selkies:ubunturesolute -- the Selkies stack
+# and everything below is identical.
+
 # Runtime Stage
-FROM ghcr.io/linuxserver/baseimage-selkies:arch
+FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie
 
 # set version label
 ARG BUILD_DATE
 ARG VERSION
 ARG SIGNAL_VERSION
 LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
-LABEL maintainer="thelamer"
+LABEL maintainer="qualifiedvirtue"
 
 ENV TITLE="Signal" \
     NO_GAMEPAD=true \
-    PIXELFLUX_WAYLAND=true 
+    PIXELFLUX_WAYLAND=true
 
 RUN \
   echo "**** add icon ****" && \
   curl -o \
     /usr/share/selkies/www/icon.png \
     https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/signal-logo.png && \
-  echo "**** install packages ****" && \
-  pacman -Sy --noconfirm \
-   "signal-desktop${SIGNAL_VERSION:+=$SIGNAL_VERSION}" && \
-  echo "**** allow optional chromium sandbox (opt-in via SIGNAL_SANDBOX) ****" && \
-  if [ -f /usr/lib/signal-desktop/chrome-sandbox ]; then \
-    chown root:root /usr/lib/signal-desktop/chrome-sandbox && \
-    chmod 4755 /usr/lib/signal-desktop/chrome-sandbox; \
+  echo "**** add signal's official signing key and repo ****" && \
+  apt-get update && \
+  apt-get install --no-install-recommends -y \
+    ca-certificates \
+    curl \
+    gnupg && \
+  curl -fsSL https://updates.signal.org/desktop/apt/keys.asc \
+    | gpg --dearmor -o /usr/share/keyrings/signal-desktop-keyring.gpg && \
+  echo \
+    "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main" \
+    > /etc/apt/sources.list.d/signal-xenial.list && \
+  echo "**** install signal-desktop from the official repo ****" && \
+  apt-get update && \
+  apt-get install --no-install-recommends -y \
+    "signal-desktop${SIGNAL_VERSION:+=$SIGNAL_VERSION}" && \
+  echo "**** portable launcher path + opt-in chromium sandbox ****" && \
+  [ -e /usr/bin/signal-desktop ] || ln -s /opt/Signal/signal-desktop /usr/bin/signal-desktop && \
+  if [ -f /opt/Signal/chrome-sandbox ]; then \
+    chown root:root /opt/Signal/chrome-sandbox && \
+    chmod 4755 /opt/Signal/chrome-sandbox; \
   fi && \
   echo "**** cleanup ****" && \
   printf \
     "Linuxserver.io version: ${VERSION}\nBuild-date: ${BUILD_DATE}" \
     > /build_version && \
-  pacman -Scc --noconfirm && \
+  apt-get clean && \
   rm -rf \
     /tmp/* \
-    /var/cache/pacman/pkg/* \
-    /var/lib/pacman/sync/*
+    /var/lib/apt/lists/* \
+    /var/tmp/*
 
 # add local files and files from buildstage
 COPY root/ /

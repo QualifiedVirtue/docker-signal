@@ -124,7 +124,7 @@ init_diagram: |
   "signal:latest" <- Base Images
 # changelog
 changelogs:
-  - {date: "29.05.26:", desc: "Remove bundled Chromium browser, add opt-in SIGNAL_SANDBOX to re-enable the Chromium/Electron sandbox."}
+  - {date: "29.05.26:", desc: "Switch default image to a Debian base using Signal's official vendor-signed .deb (Arch/GPU variant kept as Dockerfile.arch); remove bundled Chromium browser; add opt-in SIGNAL_SANDBOX to re-enable the Chromium/Electron sandbox."}
   - {date: "04.04.26:", desc: "Make Wayland default disable with PIXELFLUX_WAYLAND=false."}
   - {date: "21.03.26:", desc: "Use Wayland ozone platform fixes scaling and acceleration."}
   - {date: "28.12.25:", desc: "Add Wayland init logic."}
