@@ -4,6 +4,10 @@
 # either unprivileged user namespaces or a setuid helper, which a generic
 # container host cannot guarantee. Set SIGNAL_SANDBOX=true to re-enable it
 # in an environment you control (see README).
+# Read from the s6 env store directly; the desktop session does not reliably
+# inherit Docker env vars through the labwc autostart path.
+SIGNAL_SANDBOX=$(cat /var/run/s6/container_environment/SIGNAL_SANDBOX 2>/dev/null)
+
 if [[ "${SIGNAL_SANDBOX,,}" == "true" ]]; then
   SANDBOX_FLAG=""
 else
