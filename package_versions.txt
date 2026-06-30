@@ -15,7 +15,7 @@ alsa-lib                                                                      1.
 alsa-topology-conf                                                            1.2.5.1-4                               alpm                           
 alsa-ucm-conf                                                                 1.2.16.1-1                              alpm                           
 archlinux-keyring                                                             20260612-1                              alpm                           
-at-spi2-core                                                                  2.60.4-1                                alpm                           
+at-spi2-core                                                                  2.60.5-1                                alpm                           
 attr                                                                          2.5.2-2                                 alpm                           
 attrs                                                                         26.1.0                                  python                         
 audit                                                                         4.1.4-2                                 alpm                           
@@ -621,7 +621,7 @@ selkies                                                                       0.
 setuptools                                                                    82.0.1                                  python                         
 shadow                                                                        4.19.4.arch1-1                          alpm                           
 shared-mime-info                                                              2.4-3                                   alpm                           
-signal-desktop                                                                8.15.0-1                                alpm                           
+signal-desktop                                                                8.16.0-1                                alpm                           
 sigs.k8s.io/json                                                              v0.0.0-20250730193827-2d320260d730      go-module     (+1 duplicate)   
 sigs.k8s.io/yaml                                                              v1.6.0                                  go-module     (+1 duplicate)   
 six                                                                           1.17.0                                  python                         
