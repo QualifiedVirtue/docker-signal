@@ -624,7 +624,7 @@ selkies                                                                       0.
 setuptools                                                                    83.0.0                                  python                         
 shadow                                                                        4.19.4.arch1-1                          alpm                           
 shared-mime-info                                                              2.5.1-1                                 alpm                           
-signal-desktop                                                                8.18.0-1                                alpm                           
+signal-desktop                                                                8.19.0-1                                alpm                           
 sigs.k8s.io/json                                                              v0.0.0-20250730193827-2d320260d730      go-module     (+1 duplicate)   
 sigs.k8s.io/yaml                                                              v1.6.0                                  go-module     (+1 duplicate)   
 six                                                                           1.17.0                                  python                         
