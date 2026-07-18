@@ -1,3 +1,7 @@
 #!/bin/bash
 
-/usr/bin/signal-desktop --no-sandbox
+# EXTRA_ARGS carries additional Chromium/Electron flags set via the
+# container's EXTRA_ARGS env var (see semaphore's compose.yml.tmpl /
+# docs/signal-performance.md). Left unquoted so multiple space-separated
+# flags split into separate argv entries. Empty by default.
+/usr/bin/signal-desktop --no-sandbox $EXTRA_ARGS
