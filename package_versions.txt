@@ -43,7 +43,7 @@ cairo                                                                         1.
 catatonit                                                                     0.2.1-2                                 alpm                           
 certifi                                                                       2026.7.22                               python                         
 cffi                                                                          2.1.0                                   python                         
-chromium                                                                      151.0.7922.75-1                         alpm                           
+chromium                                                                      151.0.7922.108-1                        alpm                           
 click                                                                         8.4.2                                   python                         
 cmake                                                                         4.4.1-1                                 alpm                           
 command-line-arguments                                                        UNKNOWN                                 go-module                      
