@@ -1,0 +1,17 @@
+#! /bin/bash
+
+BIN=/usr/bin/signal-desktop-real
+
+# Wayland check
+if [ "${PIXELFLUX_WAYLAND,,}" == "true" ]; then
+  WAYLAND="--ozone-platform=wayland"
+fi
+
+# The Chromium sandbox is on by default (setuid chrome-sandbox).
+# Set SIGNAL_NO_SANDBOX=true if your runtime cannot support it.
+if [ "${SIGNAL_NO_SANDBOX,,}" == "true" ]; then
+  SANDBOX="--no-sandbox"
+fi
+
+# EXTRA_ARGS is deliberately unquoted so multiple flags split into argv entries.
+${BIN} ${WAYLAND} ${SANDBOX} ${EXTRA_ARGS} "$@"
