@@ -43,8 +43,9 @@ RUN \
   apt-get update && \
   apt-get install --no-install-recommends -y \
     "signal-desktop${SIGNAL_VERSION:+=$SIGNAL_VERSION}" && \
-  echo "**** portable launcher path + opt-in chromium sandbox ****" && \
-  [ -e /usr/bin/signal-desktop ] || ln -s /opt/Signal/signal-desktop /usr/bin/signal-desktop && \
+  echo "**** point signal-desktop-real at the vendor binary (wrapper lives in root/usr/bin) ****" && \
+  ln -sf /opt/Signal/signal-desktop /usr/bin/signal-desktop-real && \
+  rm -f /usr/bin/signal-desktop && \
   if [ -f /opt/Signal/chrome-sandbox ]; then \
     chown root:root /opt/Signal/chrome-sandbox && \
     chmod 4755 /opt/Signal/chrome-sandbox; \

@@ -27,7 +27,9 @@ RUN \
   echo "**** install packages ****" && \
   pacman -Sy --noconfirm \
    "signal-desktop${SIGNAL_VERSION:+=$SIGNAL_VERSION}" && \
-  echo "**** allow optional chromium sandbox (opt-in via SIGNAL_SANDBOX) ****" && \
+  echo "**** application tweaks ****" && \
+  mv /usr/bin/signal-desktop /usr/bin/signal-desktop-real && \
+  echo "**** allow chromium sandbox ****" && \
   if [ -f /usr/lib/signal-desktop/chrome-sandbox ]; then \
     chown root:root /usr/lib/signal-desktop/chrome-sandbox && \
     chmod 4755 /usr/lib/signal-desktop/chrome-sandbox; \

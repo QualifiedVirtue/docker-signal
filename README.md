@@ -64,7 +64,7 @@ The application can be accessed at:
 >This container does not encrypt Signal's config.json using a secret manager like gnome-keyring or kwallet, the file is stored in plaintext. Ensure the host volume is protected at rest (e.g. full-disk encryption on the host).
 
 >[!NOTE]
->Signal runs with `--no-sandbox` as required for containerised Electron applications. This is standard for this deployment model; the meaningful security perimeter is the VM boundary and your reverse proxy authentication layer.
+>Signal runs with the Chromium sandbox enabled by default. If your runtime cannot support it (e.g. no setuid or user namespaces), set `SIGNAL_NO_SANDBOX=true` to launch with `--no-sandbox`. Extra Electron flags can be passed via `EXTRA_ARGS`.
 
 ### Strict reverse proxies
 
