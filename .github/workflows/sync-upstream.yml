@@ -1,0 +1,142 @@
+# Keeps this fork in sync with linuxserver/docker-signal while preserving the
+# fork's own changes.
+#
+# Each run merges upstream master and then:
+#   - pushes straight to master if the merge only touches LSIO metadata or
+#     generated files (package_versions.txt, README.md, Jenkinsfile, ...)
+#   - otherwise opens/updates a PR from the `upstream-sync` branch for review
+#     (anything touching Dockerfile*, root/**, workflows, *-vars.yml, or a
+#     merge conflict that can't be resolved automatically)
+#
+# Requires a repository secret SYNC_TOKEN: a fine-grained PAT scoped to this
+# repo with Contents, Pull requests and Workflows set to read/write. The
+# built-in GITHUB_TOKEN can't push commits that touch workflow files, and
+# upstream's history does.
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '41 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_URL: https://github.com/linuxserver/docker-signal.git
+  UPSTREAM_BRANCH: master
+  BASE_BRANCH: master
+  SYNC_BRANCH: upstream-sync
+  BOT_NAME: github-actions[bot]
+  BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Merge upstream and route the result
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "${BOT_NAME}"
+          git config user.email "${BOT_EMAIL}"
+
+          git remote add upstream "${UPSTREAM_URL}"
+          git fetch --no-tags upstream "${UPSTREAM_BRANCH}"
+          git fetch --no-tags origin "+refs/heads/${SYNC_BRANCH}:refs/remotes/origin/${SYNC_BRANCH}" 2>/dev/null || true
+          UP="upstream/${UPSTREAM_BRANCH}"
+          UP_SHA=$(git rev-parse --short "${UP}")
+
+          if git merge-base --is-ancestor "${UP}" HEAD; then
+            echo "Already up to date with ${UP} (${UP_SHA})." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Never overwrite a sync branch someone has pushed their own work to
+          # (e.g. a manual conflict resolution). Bot merges and pure upstream
+          # commits are fine to replace.
+          if git rev-parse -q --verify "origin/${SYNC_BRANCH}" >/dev/null; then
+            TIP="origin/${SYNC_BRANCH}"
+            if git merge-base --is-ancestor "${UP}" "${TIP}"; then
+              echo "${SYNC_BRANCH} already contains ${UP_SHA}; waiting on review." | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            if ! git merge-base --is-ancestor "${TIP}" "${UP}" \
+              && [ "$(git log -1 --format=%ce "${TIP}")" != "${BOT_EMAIL}" ]; then
+              echo "::warning::${SYNC_BRANCH} has non-bot commits; not overwriting. Merge or delete it to resume syncing."
+              exit 0
+            fi
+          fi
+
+          CONFLICT=false
+          git merge --no-ff --no-commit "${UP}" || CONFLICT=true
+
+          if [ "${CONFLICT}" = true ]; then
+            for f in $(git diff --name-only --diff-filter=U); do
+              case "${f}" in
+                README.md|package_versions.txt|Jenkinsfile)
+                  # generated upstream; take theirs
+                  git checkout --theirs -- "${f}" && git add -- "${f}" ;;
+                .github/workflows/*)
+                  # LSIO workflows this fork deleted stay deleted
+                  if ! git cat-file -e "HEAD:${f}" 2>/dev/null; then
+                    git rm -q -- "${f}"
+                  fi ;;
+              esac
+            done
+          fi
+
+          if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+            UNRESOLVED=$(git diff --name-only --diff-filter=U)
+            git merge --abort
+            echo "Merge has conflicts that need a human." | tee -a "$GITHUB_STEP_SUMMARY"
+            # Point the sync branch at upstream itself; the PR will show the
+            # conflicts for resolution.
+            git push --force origin "${UP}:refs/heads/${SYNC_BRANCH}"
+            REASON="Merging upstream \`${UP_SHA}\` conflicts in:"
+            FILES="${UNRESOLVED}"
+          else
+            CHANGED=$(git diff --cached --name-only HEAD)
+            SAFE_RE='^(README\.md|package_versions\.txt|Jenkinsfile|LICENSE|AGENTS\.md|\.editorconfig|\.github/(CONTRIBUTING\.md|FUNDING\.yml|PULL_REQUEST_TEMPLATE\.md|ISSUE_TEMPLATE/.*))$'
+            RISKY=$(printf '%s\n' "${CHANGED}" | grep -Ev "${SAFE_RE}" | sed '/^$/d' || true)
+            git commit -q -m "Merge upstream ${UP_SHA} from linuxserver/docker-signal"
+
+            if [ -z "${RISKY}" ]; then
+              git push origin "HEAD:${BASE_BRANCH}"
+              {
+                echo "Auto-merged upstream ${UP_SHA} into ${BASE_BRANCH}. Files changed:"
+                printf '%s\n' "${CHANGED:-(none)}" | sed 's/^/- /'
+              } | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
+            git push --force origin "HEAD:refs/heads/${SYNC_BRANCH}"
+            REASON="Upstream \`${UP_SHA}\` changes files that affect the image or repo automation. Review before merging:"
+            FILES="${RISKY}"
+          fi
+
+          BODY=$(printf '%s\n\n%s\n\nCommits:\n%s\n' \
+            "${REASON}" \
+            "$(printf '%s\n' "${FILES}" | sed 's/^/- `/; s/$/`/')" \
+            "$(git log --no-merges --format='- %h %s' "origin/${BASE_BRANCH}..${UP}" | head -50)")
+
+          PR=$(gh pr list --head "${SYNC_BRANCH}" --base "${BASE_BRANCH}" --state open --json number --jq '.[0].number // empty')
+          if [ -n "${PR}" ]; then
+            gh pr edit "${PR}" --title "Sync upstream ${UP_SHA}" --body "${BODY}"
+          else
+            gh pr create --head "${SYNC_BRANCH}" --base "${BASE_BRANCH}" \
+              --title "Sync upstream ${UP_SHA}" --body "${BODY}"
+          fi
+          echo "${REASON}" >> "$GITHUB_STEP_SUMMARY"

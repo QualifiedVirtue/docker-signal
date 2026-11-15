@@ -6,7 +6,7 @@
 #   docker build -f Dockerfile.arch -t signal-arch .
 
 # Runtime Stage
-FROM ghcr.io/linuxserver/baseimage-selkies:arch
+FROM ghcr.io/linuxserver/baseimage-selkies:arch@sha256:1e6595bc470273de900b0b3105b127d2c7c372eaf5d8a4259821218b4a79dee2
 
 # set version label
 ARG BUILD_DATE

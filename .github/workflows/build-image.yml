@@ -12,6 +12,13 @@
 name: Build image
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - 'Dockerfile'
+      - 'root/**'
+  schedule:
+    - cron: '23 5 * * 1'
   workflow_dispatch:
     inputs:
       signal_version:

@@ -10,7 +10,7 @@
 # and everything below is identical.
 
 # Runtime Stage
-FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie
+FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie@sha256:d03d09e9ceb770032db5892dd7caa9b207ef09b55a9b79491a1c4d37842e6c01
 
 # set version label
 ARG BUILD_DATE
