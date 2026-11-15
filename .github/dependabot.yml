@@ -1,6 +1,6 @@
-# Opens PRs when the digest-pinned LSIO base images (Dockerfile, Dockerfile.arch)
-# or the GitHub Actions used by the workflows change, so every update to code
-# not built from this repo is reviewed before it reaches the image.
+# Opens PRs when the digest-pinned LSIO base image (Dockerfile) or the GitHub
+# Actions used by the workflows change, so every update to code not built from
+# this repo is reviewed before it reaches the image.
 version: 2
 updates:
   - package-ecosystem: docker

@@ -10,14 +10,8 @@ if [ "${SIGNAL_SKIP_VERIFY,,}" != "true" ]; then
     # docs/man/locale files are excluded from install by the base image's dpkg config
     VERIFY_OUT=$(dpkg --verify signal-desktop 2>&1 \
       | grep -Ev '^missing +(c +)?/usr/share/(doc|man|info|lintian|locale)/')
-  elif command -v pacman >/dev/null 2>&1; then
-    # only content changes and missing files; /usr/bin/signal-desktop is this
-    # wrapper (the packaged launcher was moved to signal-desktop-real)
-    VERIFY_OUT=$(pacman -Qkk signal-desktop 2>&1 \
-      | grep -E '^warning: signal-desktop: .*\((SHA256 checksum mismatch|No such file or directory)\)$' \
-      | grep -Ev ': /usr/bin/signal-desktop |: /usr/share/(doc|man|info|locale|help)(/| )')
   else
-    VERIFY_OUT="no supported package manager found to verify signal-desktop"
+    VERIFY_OUT="dpkg not found; cannot verify signal-desktop"
   fi
   if [ -n "${VERIFY_OUT}" ]; then
     echo "[signal-desktop] package verification FAILED, not launching:" >&2

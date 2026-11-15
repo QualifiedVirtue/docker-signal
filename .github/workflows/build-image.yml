@@ -1,6 +1,6 @@
 # Builds this fork's image (default Dockerfile: Debian + official Signal .deb)
 # and pushes it to GitHub Container Registry (GHCR). Personal replacement for
-# LSIO's Jenkins pipeline. To build the Arch/GPU variant, set file: Dockerfile.arch.
+# LSIO's Jenkins pipeline.
 #
 # Triggers:
 #   - push to your working/master branch (when the recipe changes)

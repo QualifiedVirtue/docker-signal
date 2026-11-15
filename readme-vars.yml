@@ -113,7 +113,7 @@ init_diagram: |
   "signal:latest" <- Base Images
 # changelog
 changelogs:
-  - {date: "15.11.26:", desc: "Pin base image by digest; verify Signal package files before launch (SIGNAL_SKIP_VERIFY=true to bypass)."}
+  - {date: "15.11.26:", desc: "Pin base image by digest; verify Signal package files before launch (SIGNAL_SKIP_VERIFY=true to bypass); remove Arch variant (Dockerfile.arch)."}
   - {date: "10.10.26:", desc: "Track upstream launcher wrapper; Chromium sandbox now on by default (SIGNAL_NO_SANDBOX=true to disable); EXTRA_ARGS supported."}
   - {date: "29.05.26:", desc: "Switch default image to a Debian base using Signal's official vendor-signed .deb (Arch/GPU variant kept as Dockerfile.arch); remove bundled Chromium browser; add opt-in SIGNAL_SANDBOX to re-enable the Chromium/Electron sandbox."}
   - {date: "04.04.26:", desc: "Make Wayland default disable with PIXELFLUX_WAYLAND=false."}
