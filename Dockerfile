@@ -3,7 +3,6 @@
 # Default build: stable Debian base with the official, Signal-signed .deb
 # (vendor supply chain). No GPU/Mesa freshness benefit, so it trades hardware
 # acceleration for a security-backported base and a vendor-signed Signal binary.
-# The Arch/GPU variant lives in Dockerfile.arch.
 #
 # To target Ubuntu (Signal's native build target) instead, change the base tag
 # to ghcr.io/linuxserver/baseimage-selkies:ubunturesolute -- the Selkies stack
